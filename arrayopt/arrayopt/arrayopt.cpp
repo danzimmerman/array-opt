@@ -56,6 +56,13 @@ std::complex<double> blm_integrand(double k, double theta, double phi, double xl
     return amp * std::exp(arg);
 }
 
+std::complex<double> blm(double k, double xl, double xm, double yl, double ym)
+{
+    // what are our options to do the double integral here??
+    // https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2016.0401
+    return std::complex(nan(""), nan(""));
+}
+
 std::string efstr = "\n**ERROR! {}\n";
 std::string msg;
 
