@@ -6,9 +6,13 @@
 #define CXXOPTIONS_NO_EXCEPTIONS
 #include <iostream>
 #include <filesystem>
+#include <complex>
 #include <fmt/format.h> //while waiting for official C++20 support
 #include <Eigen/Dense>
+#include <boost/math/quadrature/gauss.hpp>
 #include <cxxopts.hpp>
+
+namespace bmq = boost::math::quadrature;
 
 #define pi EIGEN_PI
 
@@ -37,6 +41,21 @@ std::string header(const size_t width, const std::string msg)
     return hdr;
 }
 
+double f_dipole(double theta, double phi)
+{
+    return std::sin(theta);
+}
+
+std::complex<double> blm_integrand(double k, double theta, double phi, double xl, double xm, double yl, double ym)
+{
+    double amp = std::pow(f_dipole(theta, phi), 2);
+    double tmx = k * (xl - xm) * std::sin(theta) * std::cos(phi);
+    double tmy = k * (yl - ym) * std::sin(theta) * std::sin(phi);
+    std::complex<double> arg(0, -(tmx+tmy)); //-i(tmx+tmy)
+    
+    return amp * std::exp(arg);
+}
+
 std::string efstr = "\n**ERROR! {}\n";
 std::string msg;
 
@@ -45,12 +64,13 @@ int main(int argc, char** argv)
     cxxopts::Options options("arrayopt", "Uses M.T. Ma's approach to compute array currents for optimal directivity.");
     options.add_options()
         ("help", "Print this screen")
+        ("freq", "Frequency in MHz", cxxopts::value<double>()->default_value("1.8"))
         ("az", "Target azimuth angle, degrees", cxxopts::value<double>()->default_value("0.0"))
         ("el", "Target elevation angle, degrees", cxxopts::value<double>()->default_value("0.0"))
         ("file", "Wire description file, EZNEC export format, units in meters/mm", cxxopts::value<std::string>())
         ;
     
-    double az, el, azrad, elrad;
+    double az, el, azrad, elrad, freq;
     std::string fn;
     try
     {
@@ -62,21 +82,52 @@ int main(int argc, char** argv)
         }
         az = opts["az"].as<double>();
         el = opts["el"].as<double>();
+        freq = opts["freq"].as<double>();
         azrad = pi * az / 180;
         elrad = pi * az / 180;
     }
     catch (cxxopts::OptionParseException& e)
     {
-        std::cout << fmt::format(efstr, e.what());
+        std::cout << fmt::format(efstr, e.what()) << std::endl;
         return EXIT_UNRECOGNIZED_OPTION;
     }
 
     msg = "N3OX / M.T. Ma optimal directivity array calculator";
     std::cout << header(80, msg) << std::endl;
     
-    msg = "azimuth: {0:.3f} degrees, elevation: {1:.3f} degrees";
-    std::cout << fmt::format(msg, az, el) << std::endl;
+    double k0 = 2 * pi / (freq * 1e6); //wavenumber
+
+    msg = "azimuth: {0:.3f} degrees, elevation: {1:.3f} degrees, freq: {2:.3f} MHz, wavenumber: {3:.3e}/m";
+    std::cout << fmt::format(msg, az, el, freq, k0) << std::endl;
+
+    // ==== hardcode some element positions for now ====
+    std::vector<double> elx; 
+    std::vector<double> ely;
+    for (int i = 0; i < 3; i++)
+    {
+        elx.push_back(20.0 * i);
+        ely.push_back(0.0);
+    }
+    if (!(elx.size() == ely.size()))
+    {
+        std::cout << fmt::format(efstr, "Element x, y coordinates not the same size!") << std::endl;
+    }
+    size_t Nel = elx.size();
+
+    // ==== B matrix ====
+    Eigen::MatrixXcd B;
+    B.resize(Nel, Nel);
+
+    for (size_t l = 0; l < Nel; l++)
+    {
+        for (size_t m = 0; m < Nel; m++)
+        {
+            B(l, m) = std::complex(l / 10.0, m / 10.0);
+        }
+    }
     
+    std::cout << B << std::endl;
+
     std::cout << header(80, "Finished");
     return EXIT_SUCCESS;
 }

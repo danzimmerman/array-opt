@@ -7,3 +7,9 @@
 [submodule "fmt"]
 	path = fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "boost"]
+	path = boost
+	url = https://github.com/boostorg/boost.git
+[submodule "NumericalIntegration"]
+	path = NumericalIntegration
+	url = https://github.com/tbs1980/NumericalIntegration.git
