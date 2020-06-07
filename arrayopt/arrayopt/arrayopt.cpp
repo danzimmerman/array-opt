@@ -60,6 +60,9 @@ std::complex<double> blm(double k, double xl, double xm, double yl, double ym)
 {
     // what are our options to do the double integral here??
     // https://royalsocietypublishing.org/doi/pdf/10.1098/rspa.2016.0401
+    // delunay integration https://scholarworks.gsu.edu/cgi/viewcontent.cgi?article=1158&context=math_theses
+    // monte carlo brute force?
+    // can we get this in closed form for dipole /
     return std::complex(nan(""), nan(""));
 }
 
