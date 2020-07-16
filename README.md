@@ -3,6 +3,12 @@ Reimplementation of M.T. Ma's optimal array calculations in C++ using Eigen.
 
 See [this page](https://danzimmerman.com/code/directivity/) for a description and Jupyter notebook prototype.
 
+# Using the Code
+
+Not useful for anything yet, but make sure to run `git submodule update --init --recursive` after clone to pull in the dependencies.
+
+I want this to be a source-only single-build eventually.
+
 # Status
 
 This is a work-in-progress hobby project. Right now I'm researching and deciding which numerical integration scheme to use to compute the matrix elements of the matrix **B**:
